@@ -161,14 +161,25 @@
                     <div id="custom-settings-area" class="bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 shadow-inner hidden space-y-4">
                         <label class="block text-sm font-black mb-1 text-indigo-800 uppercase tracking-wide">3. Tùy chỉnh nâng cao</label>
                         <div>
-                            <span class="text-xs font-bold text-slate-500 mb-1 block">Mức độ nhận thức:</span>
-                            <select id="cfg-level" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 font-bold bg-white focus:border-indigo-500 outline-none">
-                                <option value="">-- Trộn đủ mọi mức độ --</option>
-                                <option value="NhanBiet">Nhận biết (Dễ)</option>
-                                <option value="ThongHieu">Thông hiểu (Vừa)</option>
-                                <option value="VanDung">Vận dụng (Khó)</option>
-                                <option value="VanDungCao">Vận dụng cao (Rất khó)</option>
-                            </select>
+                            <span class="text-xs font-bold text-slate-500 mb-2 block">Mức độ nhận thức có thể xuất hiện:</span>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="flex items-center space-x-2 p-2 border-2 border-slate-100 rounded-xl cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition">
+                                    <input type="checkbox" value="NhanBiet" class="chk-level w-4 h-4 text-indigo-600 rounded" checked>
+                                    <span class="text-sm font-bold text-slate-700">Nhận biết</span>
+                                </label>
+                                <label class="flex items-center space-x-2 p-2 border-2 border-slate-100 rounded-xl cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition">
+                                    <input type="checkbox" value="ThongHieu" class="chk-level w-4 h-4 text-indigo-600 rounded" checked>
+                                    <span class="text-sm font-bold text-slate-700">Thông hiểu</span>
+                                </label>
+                                <label class="flex items-center space-x-2 p-2 border-2 border-slate-100 rounded-xl cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition">
+                                    <input type="checkbox" value="VanDung" class="chk-level w-4 h-4 text-indigo-600 rounded" checked>
+                                    <span class="text-sm font-bold text-slate-700">Vận dụng</span>
+                                </label>
+                                <label class="flex items-center space-x-2 p-2 border-2 border-slate-100 rounded-xl cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition">
+                                    <input type="checkbox" value="VanDungCao" class="chk-level w-4 h-4 text-indigo-600 rounded" checked>
+                                    <span class="text-sm font-bold text-slate-700">V.Dụng cao</span>
+                                </label>
+                            </div>
                         </div>
                         <div>
                             <span class="text-xs font-bold text-slate-500 mb-1 block">Số lượng câu hỏi muốn làm:</span>
@@ -275,13 +286,16 @@
                     </div>
 
                     <!-- Lời động viên -->
-                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 max-w-xl mx-auto mb-8 shadow-inner flex items-start space-x-4 text-left">
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 max-w-xl mx-auto mb-5 shadow-inner flex items-start space-x-4 text-left">
                         <div id="res-icon" class="text-4xl mt-1">🔥</div>
                         <div>
                             <h4 class="font-black text-slate-800 text-lg mb-1" id="res-title">Đánh giá:</h4>
                             <p id="res-eval" class="font-semibold text-slate-600 text-sm leading-relaxed">Đang đánh giá...</p>
                         </div>
                     </div>
+
+                    <!-- Khu vực Nhắc nhở ôn tập -->
+                    <div id="res-weak-chapters"></div>
                     
                     <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
                         <button onclick="reviewAnswers()" class="w-full sm:w-auto px-8 py-3.5 bg-indigo-50 text-indigo-700 border border-indigo-200 font-black rounded-xl hover:bg-indigo-100 transition shadow-sm"><i class="fas fa-search mr-2"></i>Xem Chi Tiết Đáp Án</button>
@@ -518,12 +532,15 @@
                 
             } else {
                 // CHẾ ĐỘ LUYỆN TẬP TỰ DO
-                let level = document.getElementById('cfg-level').value;
+                let checkedLevels = Array.from(document.querySelectorAll('.chk-level:checked')).map(b => b.value);
                 let count = parseInt(document.getElementById('cfg-count').value) || 20;
 
                 let filteredPool = basePool;
-                if (level !== "") {
-                    filteredPool = basePool.filter(q => q.level === level);
+                if (checkedLevels.length > 0) {
+                    filteredPool = basePool.filter(q => checkedLevels.includes(q.level));
+                } else {
+                    showAlert("Vui lòng tick chọn ít nhất 1 mức độ khó để luyện tập!");
+                    return;
                 }
 
                 if (filteredPool.length === 0) {
@@ -754,6 +771,7 @@
 
             let totalPoints = 0; 
             let maxPoints = window.currentQuiz.length;
+            let chapterStats = {};
 
             window.currentQuiz.forEach((q, idx) => {
                 let qId = `q_${idx}`;
@@ -761,8 +779,14 @@
                 q.studentAnswer = ans;
                 q.studentCorrect = false;
 
+                if (!chapterStats[q.chapterId]) {
+                    chapterStats[q.chapterId] = { totalQuestions: 0, wrongCount: 0 };
+                }
+                chapterStats[q.chapterId].totalQuestions++;
+                let isCorrect = false;
+
                 if (q.type === 'trac_nghiem') {
-                    if (ans !== undefined && parseInt(ans) === q.correctAnswer) { totalPoints += 1; q.studentCorrect = true; }
+                    if (ans !== undefined && parseInt(ans) === q.correctAnswer) { totalPoints += 1; q.studentCorrect = true; isCorrect = true; }
                 } 
                 else if (q.type === 'dung_sai') {
                     if (ans && typeof ans === 'object') {
@@ -771,12 +795,16 @@
                         if(correctCount === 1) totalPoints += 0.1;
                         else if(correctCount === 2) totalPoints += 0.25;
                         else if(correctCount === 3) totalPoints += 0.5;
-                        else if(correctCount === 4) { totalPoints += 1; q.studentCorrect = true; }
+                        else if(correctCount === 4) { totalPoints += 1; q.studentCorrect = true; isCorrect = true; }
                         q.studentCorrectCount = correctCount;
                     }
                 } 
                 else if (q.type === 'tra_loi_ngan') {
-                    if (ans && ans.toLowerCase() === (q.correctAnswer||'').toLowerCase().trim()) { totalPoints += 1; q.studentCorrect = true; }
+                    if (ans && ans.toLowerCase() === (q.correctAnswer||'').toLowerCase().trim()) { totalPoints += 1; q.studentCorrect = true; isCorrect = true; }
+                }
+
+                if (!isCorrect) {
+                    chapterStats[q.chapterId].wrongCount++;
                 }
             });
 
@@ -810,6 +838,36 @@
             document.getElementById('res-icon').textContent = evalIcon;
             document.getElementById('res-title').textContent = evalTitle;
             document.getElementById('res-eval').textContent = evalMsg;
+
+            // Xử lý Gợi ý ôn tập các chương sai
+            let weakChaptersHtml = '';
+            let weakChaptersList = [];
+            for (let chapId in chapterStats) {
+                if (chapterStats[chapId].wrongCount > 0) {
+                    weakChaptersList.push({
+                        chapId: chapId,
+                        wrongCount: chapterStats[chapId].wrongCount,
+                        totalQuestions: chapterStats[chapId].totalQuestions
+                    });
+                }
+            }
+            weakChaptersList.sort((a, b) => b.wrongCount - a.wrongCount);
+
+            if (weakChaptersList.length > 0) {
+                weakChaptersHtml += `<div class="bg-rose-50 p-5 rounded-2xl border border-rose-200 max-w-xl mx-auto mb-8 shadow-inner text-left">
+                    <h4 class="font-black text-rose-800 text-lg mb-3 flex items-center"><i class="fas fa-exclamation-circle mr-2 text-rose-500"></i> Lỗ hổng kiến thức cần ôn lại:</h4>
+                    <ul class="space-y-2.5">`;
+                weakChaptersList.slice(0, 3).forEach(item => {
+                    let niceName = chapterDictionary[item.chapId] || `Chương mã: ${item.chapId}`;
+                    weakChaptersHtml += `<li class="flex items-start text-sm font-bold text-rose-700 bg-white p-3 rounded-xl border border-rose-100 shadow-sm"><i class="fas fa-arrow-right mt-1 mr-2 text-rose-400"></i> <span class="flex-grow">${niceName}</span> <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">Sai ${item.wrongCount}/${item.totalQuestions}</span></li>`;
+                });
+                weakChaptersHtml += `</ul></div>`;
+            } else {
+                 weakChaptersHtml += `<div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-200 max-w-xl mx-auto mb-8 shadow-inner text-center">
+                    <h4 class="font-black text-emerald-800 text-lg flex items-center justify-center"><i class="fas fa-star text-amber-400 mr-2 text-xl"></i> Tuyệt vời! Bạn không sai câu nào!</h4>
+                 </div>`;
+            }
+            document.getElementById('res-weak-chapters').innerHTML = weakChaptersHtml;
 
             // LƯU LỊCH SỬ OFFLINE THEO TÊN
             let historyKey = 'chem_student_history_' + window.userName.replace(/\s+/g, '_');
