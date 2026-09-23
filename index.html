@@ -421,9 +421,33 @@
             document.getElementById('loading-msg').classList.remove('hidden');
             
             try {
-                let response = await fetch('data.json');
-                if(!response.ok) throw new Error("File not found");
-                window.systemQuestions = await response.json();
+                // Thêm timestamp để ép trình duyệt tải file mới nhất, bỏ qua cache
+                let response = await fetch('data.json?t=' + new Date().getTime());
+                if(!response.ok) throw new Error("Không thể tải file data.json (Mã lỗi: " + response.status + " - File chưa có trên GitHub)");
+                
+                let rawData = await response.json();
+                
+                // Chuẩn hóa mọi định dạng JSON (Kể cả Object hay Array)
+                let dataArray = [];
+                if (Array.isArray(rawData)) {
+                    dataArray = rawData;
+                } else if (typeof rawData === 'object') {
+                    for (let key in rawData) {
+                        if (Array.isArray(rawData[key])) dataArray = dataArray.concat(rawData[key]);
+                    }
+                    if (dataArray.length === 0 && rawData.content) dataArray.push(rawData);
+                }
+
+                if (dataArray.length === 0) throw new Error("File data.json trống hoặc sai cấu trúc.");
+
+                // Dự phòng trường hợp thiếu dữ liệu ngầm
+                dataArray.forEach(q => {
+                    q.grade = String(q.grade || "12");
+                    q.type = q.type || "trac_nghiem";
+                    q.level = q.level || "NhanBiet";
+                });
+
+                window.systemQuestions = dataArray;
                 
                 document.getElementById('display-user-name').textContent = window.userName;
                 document.getElementById('user-info').classList.remove('hidden');
@@ -433,7 +457,8 @@
                 document.querySelectorAll('.chk-grade').forEach(cb => cb.checked = true);
                 updateSetupUI();
             } catch (err) {
-                showAlert("LỖI: Không tìm thấy file data.json! Giáo viên cần xuất file đề từ máy và tải lên GitHub (cùng thư mục với file html này) thì học sinh mới có đề để thi.");
+                showAlert("LỖI TẢI DỮ LIỆU:\n" + err.message + "\n\n* Hướng dẫn: Kiểm tra lại tên file trên GitHub phải là data.json (viết thường toàn bộ) hoặc do bạn chưa tải file này lên.");
+                console.error(err);
             } finally { document.getElementById('loading-msg').classList.add('hidden'); }
         }
 
