@@ -126,7 +126,8 @@
                     <input type="text" id="student-name" placeholder="Ví dụ: Nguyễn Văn A..." class="w-full border-2 border-slate-200 rounded-2xl pl-12 pr-4 py-4 font-bold text-slate-700 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition duration-200 text-lg">
                 </div>
                 
-                <button onclick="loginAndFetchData()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black py-4 rounded-2xl shadow-lg hover:shadow-indigo-500/30 transition duration-300 transform hover:-translate-y-1 flex items-center justify-center space-x-3 text-lg">
+                <!-- SỬA LỖI: Thêm ID cho nút để có thể tạo hiệu ứng vô hiệu hóa khi đang tải file -->
+                <button id="btn-start-quiz" onclick="loginAndFetchData()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black py-4 rounded-2xl shadow-lg hover:shadow-indigo-500/30 transition duration-300 transform hover:-translate-y-1 flex items-center justify-center space-x-3 text-lg">
                     <span>Bắt Đầu Ngay</span> <i class="fas fa-arrow-right"></i>
                 </button>
                 <p id="loading-msg" class="text-sm text-indigo-600 font-bold mt-6 hidden animate-pulse bg-indigo-50 py-2 rounded-lg border border-indigo-100"><i class="fas fa-spinner fa-spin mr-2"></i>Đang đồng bộ ngân hàng đề từ máy chủ...</p>
@@ -158,17 +159,35 @@
                         </div>
                     </div>
 
+                    <!-- SỬA YÊU CẦU: Cho phép chọn nhiều khối lớp bằng 3 checkbox -->
                     <div class="bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 shadow-inner">
                         <label class="block text-sm font-black mb-3 text-indigo-800 uppercase tracking-wide">2. Phạm vi khối lớp</label>
-                        <select id="cfg-grade" onchange="renderChapters()" class="w-full border-2 border-indigo-200 rounded-xl px-4 py-3.5 font-bold bg-white text-slate-700 focus:ring-4 focus:ring-indigo-500/20 outline-none transition cursor-pointer text-base">
-                            <option value="ALL">🌟 Tất cả khối lớp (Đề tổng hợp)</option>
-                            <option value="12">📚 Chỉ kiến thức Lớp 12</option>
-                            <option value="11">📚 Chỉ kiến thức Lớp 11</option>
-                            <option value="10">📚 Chỉ kiến thức Lớp 10</option>
-                        </select>
+                        <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                            <label class="checkbox-card relative flex items-center justify-center p-2 rounded-xl border-2 border-slate-200 hover:border-indigo-300 bg-white cursor-pointer transition shadow-sm group">
+                                <input type="checkbox" value="10" onchange="renderChapters()" class="chk-grade absolute opacity-0 w-0 h-0">
+                                <div class="w-5 h-5 rounded border-2 border-slate-300 mr-1.5 flex items-center justify-center transition-colors group-hover:border-indigo-400 bg-white shadow-inner">
+                                    <i class="fas fa-check text-[10px] text-white opacity-0 transition-opacity"></i>
+                                </div>
+                                <span class="font-bold text-slate-700 text-sm">Lớp 10</span>
+                            </label>
+                            <label class="checkbox-card relative flex items-center justify-center p-2 rounded-xl border-2 border-slate-200 hover:border-indigo-300 bg-white cursor-pointer transition shadow-sm group">
+                                <input type="checkbox" value="11" onchange="renderChapters()" class="chk-grade absolute opacity-0 w-0 h-0">
+                                <div class="w-5 h-5 rounded border-2 border-slate-300 mr-1.5 flex items-center justify-center transition-colors group-hover:border-indigo-400 bg-white shadow-inner">
+                                    <i class="fas fa-check text-[10px] text-white opacity-0 transition-opacity"></i>
+                                </div>
+                                <span class="font-bold text-slate-700 text-sm">Lớp 11</span>
+                            </label>
+                            <label class="checkbox-card relative flex items-center justify-center p-2 rounded-xl border-2 border-slate-200 hover:border-indigo-300 bg-white cursor-pointer transition shadow-sm group">
+                                <input type="checkbox" value="12" checked onchange="renderChapters()" class="chk-grade absolute opacity-0 w-0 h-0">
+                                <div class="w-5 h-5 rounded border-2 border-slate-300 mr-1.5 flex items-center justify-center transition-colors group-hover:border-indigo-400 bg-white shadow-inner">
+                                    <i class="fas fa-check text-[10px] text-white opacity-0 transition-opacity"></i>
+                                </div>
+                                <span class="font-bold text-slate-700 text-sm">Lớp 12</span>
+                            </label>
+                        </div>
+                        <p class="text-xs font-bold text-slate-400 mt-3 text-center italic">* Có thể tick kết hợp nhiều lớp cùng lúc</p>
                     </div>
 
-                    <!-- Tùy chỉnh thêm (Cho phép THPT & Tự do đều hiển thị chọn mức độ, nhưng THPT mặc định tỷ lệ) -->
                     <div id="custom-settings-area" class="bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 shadow-inner space-y-4">
                         <label class="block text-sm font-black mb-1 text-indigo-800 uppercase tracking-wide">3. Tùy chỉnh mức độ (Luyện Tự Do)</label>
                         <div>
@@ -347,6 +366,7 @@
         </div>
     </main>
 
+    <!-- SCRIPT CHÍNH -->
     <script>
         // TỪ ĐIỂN CHƯƠNG TRÌNH HÓA HỌC
         const chapterDictionary = {
@@ -364,7 +384,7 @@
         window.systemQuestions = []; 
         window.currentQuiz = []; 
         window.quizAnswers = {}; 
-        window.flaggedQuestions = {}; // Lưu cờ đánh dấu
+        window.flaggedQuestions = {};
         window.progressChartInstance = null;
         
         window.timerInterval = null;
@@ -400,22 +420,65 @@
             let name = document.getElementById('student-name').value.trim();
             if(!name) { showAlert('Vui lòng nhập Họ và Tên của bạn!'); return; }
             window.userName = name;
-            document.getElementById('loading-msg').classList.remove('hidden');
+            
+            // Tắt nút và hiện thông báo tải
+            let btn = document.getElementById('btn-start-quiz');
+            let loadingMsg = document.getElementById('loading-msg');
+            if(btn) { btn.disabled = true; btn.classList.add('opacity-70', 'cursor-not-allowed'); }
+            loadingMsg.classList.remove('hidden');
             
             try {
-                let response = await fetch('data.json');
-                if(!response.ok) throw new Error("File not found");
-                window.systemQuestions = await response.json();
+                // Ép trình duyệt lấy bản mới nhất, bỏ qua Cache cũ (cực kỳ quan trọng)
+                let response = await fetch('data.json?t=' + new Date().getTime());
+                
+                if(!response.ok) {
+                    throw new Error(`Mã lỗi ${response.status}: Không tìm thấy file data.json! Có thể giáo viên chưa bấm "Đồng bộ lên GitHub" ở App quản lý.`);
+                }
+                
+                let rawData = await response.json();
+                
+                // Chuẩn hóa JSON: Xử lý mượt mà mọi cấu trúc xuất ra từ máy giáo viên
+                let dataArray = [];
+                if (Array.isArray(rawData)) {
+                    dataArray = rawData;
+                } else if (typeof rawData === 'object') {
+                    for (let key in rawData) {
+                        if (Array.isArray(rawData[key])) dataArray = dataArray.concat(rawData[key]);
+                    }
+                    if (dataArray.length === 0 && rawData.content) dataArray.push(rawData);
+                }
+
+                if (dataArray.length === 0) {
+                    throw new Error("File data.json bị trống hoặc cấu trúc bị lỗi.");
+                }
+
+                // Dự phòng các trường hợp thiếu dữ liệu ngầm định để tránh crash lúc tạo bài
+                dataArray.forEach(q => {
+                    q.grade = String(q.grade || "12");
+                    q.type = q.type || "trac_nghiem";
+                    q.level = q.level || "NhanBiet";
+                });
+
+                window.systemQuestions = dataArray;
                 
                 document.getElementById('display-user-name').textContent = window.userName;
                 document.getElementById('user-info').classList.remove('hidden');
                 
-                hideAllViews(); document.getElementById('view-setup').classList.remove('hidden');
-                document.getElementById('cfg-mode').value = 'THPT'; document.getElementById('cfg-grade').value = 'ALL';
+                hideAllViews(); 
+                document.getElementById('view-setup').classList.remove('hidden');
+                
+                document.getElementById('cfg-mode').value = 'THPT'; 
+                // Mặc định ban đầu chỉ tick lớp 12
+                document.querySelectorAll('.chk-grade').forEach(cb => cb.checked = (cb.value === "12"));
+                
                 updateSetupUI();
             } catch (err) {
-                showAlert("LỖI: Không tìm thấy file data.json! Giáo viên cần xuất file đề từ máy và tải lên GitHub (cùng thư mục với file html này) thì học sinh mới có đề để thi.");
-            } finally { document.getElementById('loading-msg').classList.add('hidden'); }
+                console.error("LỖI CHI TIẾT TỪ TRÌNH DUYỆT:", err);
+                showAlert("LỖI KHỞI ĐỘNG HỆ THỐNG:\n" + err.message);
+            } finally { 
+                loadingMsg.classList.add('hidden'); 
+                if(btn) { btn.disabled = false; btn.classList.remove('opacity-70', 'cursor-not-allowed'); }
+            }
         }
 
         window.updateSetupUI = function() {
@@ -432,13 +495,18 @@
         }
 
         window.renderChapters = function() {
-            let gradeFilter = document.getElementById('cfg-grade').value;
+            // Lấy danh sách TẤT CẢ các lớp đã được tick
+            let checkedGrades = Array.from(document.querySelectorAll('.chk-grade:checked')).map(cb => String(cb.value));
             let chaptersFound = new Set();
-            window.systemQuestions.forEach(q => { if (gradeFilter === 'ALL' || q.grade === gradeFilter) chaptersFound.add(q.chapterId); });
+            
+            // Tìm tất cả các chương thuộc những khối lớp đã chọn
+            window.systemQuestions.forEach(q => { 
+                if (checkedGrades.includes(String(q.grade))) chaptersFound.add(q.chapterId); 
+            });
             
             let container = document.getElementById('cfg-chapter-container'); container.innerHTML = '';
             if(chaptersFound.size === 0) {
-                container.innerHTML = '<p class="text-sm font-bold text-rose-500 italic p-4 text-center bg-rose-50 rounded-lg">Không có dữ liệu trong ngân hàng.</p>';
+                container.innerHTML = '<p class="text-sm font-bold text-rose-500 italic p-4 text-center bg-rose-50 rounded-lg">Không có dữ liệu trong ngân hàng hoặc bạn chưa tick chọn khối lớp nào.</p>';
                 document.getElementById('chk-all-chap').disabled = true; return;
             }
             
@@ -462,7 +530,7 @@
         function sortQuestionsByLevel(arr) { return arr.sort((a, b) => levelWeight[a.level] - levelWeight[b.level]); }
 
         function getTHPTDistribution(type) {
-            // Chuẩn 2025 ước tính
+            // Chuẩn 2025
             if(type === 'trac_nghiem') return { NhanBiet: 7, ThongHieu: 7, VanDung: 2, VanDungCao: 2 }; // Tổng 18
             if(type === 'dung_sai') return { NhanBiet: 1, ThongHieu: 1, VanDung: 1, VanDungCao: 1 };     // Tổng 4
             if(type === 'tra_loi_ngan') return { NhanBiet: 1, ThongHieu: 2, VanDung: 2, VanDungCao: 1 }; // Tổng 6
@@ -481,16 +549,13 @@
                 picked.forEach(q => { selected.push(q); usedIds.add(q.id || JSON.stringify(q)); });
             });
             
-            // Nếu ngân hàng bị hụt câu (chưa đủ phân bổ), bốc random bù vào cho đủ
+            // Nếu ngân hàng bị hụt câu, bù random
             if (selected.length < targetCount) {
                 let remaining = shuffleArray(pool.filter(q => !usedIds.has(q.id || JSON.stringify(q))));
                 selected.push(...remaining.slice(0, targetCount - selected.length));
             }
             
-            // Nếu ngân hàng không có đủ câu hỏi cho dạng này, trả về null báo lỗi
             if (selected.length < targetCount) return null;
-            
-            // Trả về mảng đã ĐƯỢC SẮP XẾP TỪ DỄ ĐẾN KHÓ
             return sortQuestionsByLevel(selected);
         }
 
@@ -522,7 +587,7 @@
                 let filteredPool = checkedLevels.length > 0 ? basePool.filter(q => checkedLevels.includes(q.level)) : basePool;
                 if (filteredPool.length === 0) { showAlert("Không có câu hỏi nào khớp với độ khó & chương bạn chọn."); return; }
 
-                finalPool = sortQuestionsByLevel(shuffleArray(filteredPool).slice(0, count)); // Bốc random rồi SẮP XẾP
+                finalPool = sortQuestionsByLevel(shuffleArray(filteredPool).slice(0, count));
                 window.isCountUpTimer = true; window.timeRemaining = 0; 
             }
 
@@ -539,7 +604,7 @@
             window.quizAnswers = {}; window.flaggedQuestions = {}; window.timeTakenSec = 0;
             
             renderQuizUI(mode);
-            renderNavGrid(); // Render menu câu hỏi bên phải
+            renderNavGrid();
             
             hideAllViews(); document.getElementById('view-quiz').classList.remove('hidden'); window.scrollTo(0,0);
             startTimer();
@@ -580,11 +645,14 @@
             }
         }
 
-        function buildImageHtml(images, layout) {
+        function buildImageHtml(images, layout, scale) {
             if(!images || images.length === 0) return '';
+            let scaleVal = scale || 100;
             let layoutClass = "w-full gap-4 justify-center items-center my-4 ";
             if(layout === 'row') layoutClass += "flex flex-row flex-wrap"; else if(layout === 'col') layoutClass += "flex flex-col"; else if(layout === 'grid') layoutClass += "grid grid-cols-2";
-            let html = `<div class="${layoutClass}">`; images.forEach(src => { html += `<img src="${src}" class="standalone-img">`; }); html += `</div>`;
+            let html = `<div class="${layoutClass}">`; 
+            images.forEach(src => { html += `<img src="${src}" class="standalone-img" style="width: ${scaleVal}%; max-width: ${scaleVal}%;">`; }); 
+            html += `</div>`;
             return html;
         }
 
@@ -607,7 +675,7 @@
             block.scrollIntoView({behavior: 'smooth', block: 'center'});
             block.classList.add('ring-4', 'ring-indigo-300', 'ring-offset-2');
             setTimeout(() => block.classList.remove('ring-4', 'ring-indigo-300', 'ring-offset-2'), 1200);
-            if(window.innerWidth < 768) toggleNavPanel(); // Đóng menu trên mobile
+            if(window.innerWidth < 768) toggleNavPanel();
         }
 
         window.toggleFlag = function(qId) {
@@ -618,7 +686,6 @@
         function updateNavGridStatus(qId) {
             let btn = document.getElementById(`nav-btn-${qId}`); if(!btn) return;
             
-            // Check Answered
             let isAns = false; let ans = window.quizAnswers[qId]; let q = window.currentQuiz[parseInt(qId.replace('q_',''))];
             if (q.type === 'trac_nghiem' && ans !== undefined) isAns = true;
             else if (q.type === 'tra_loi_ngan' && ans && String(ans).trim() !== '') isAns = true;
@@ -632,7 +699,6 @@
                 btn.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600', 'hover:bg-emerald-600');
             }
 
-            // Check Flag
             let flagIcon = document.getElementById(`flag-icon-nav-${qId}`);
             let flagBtnMain = document.getElementById(`flag-btn-main-${qId}`);
             if(window.flaggedQuestions[qId]) {
@@ -687,7 +753,7 @@
                 html += `<div class="font-bold text-slate-800 text-justify mb-3 text-[14pt] leading-relaxed">${q.content || ''}</div>`;
                 
                 let images = q.standaloneImages || (q.standaloneImage ? [q.standaloneImage] : []);
-                html += buildImageHtml(images, q.standaloneLayout);
+                html += buildImageHtml(images, q.standaloneLayout, q.standaloneScale);
                 if(q.subContent) html += `<div class="font-bold text-slate-800 text-justify mb-5 text-[14pt] leading-relaxed">${q.subContent}</div>`;
 
                 if(q.type === 'trac_nghiem') {
@@ -766,7 +832,9 @@
         window.submitQuiz = function(isForced = false) {
             if(window.timerInterval) clearInterval(window.timerInterval);
 
-            let totalPoints = 0; let maxPoints = window.currentQuiz.length; let chapterStats = {};
+            let totalPoints = 0; 
+            let maxPossiblePoints = 0; 
+            let chapterStats = {};
 
             window.currentQuiz.forEach((q, idx) => {
                 let qId = `q_${idx}`; let ans = window.quizAnswers[qId];
@@ -775,12 +843,17 @@
                 if (!chapterStats[q.chapterId]) chapterStats[q.chapterId] = { total: 0, wrong: 0 };
                 chapterStats[q.chapterId].total++; let isCorrect = false;
 
+                // TÍNH ĐIỂM CHUẨN 2025
                 if (q.type === 'trac_nghiem') {
-                    if (ans !== undefined && parseInt(ans) === q.correctAnswer) { totalPoints += 1; q.studentCorrect = true; isCorrect = true; }
+                    maxPossiblePoints += 0.25;
+                    if (ans !== undefined && parseInt(ans) === q.correctAnswer) { totalPoints += 0.25; q.studentCorrect = true; isCorrect = true; }
                 } else if (q.type === 'dung_sai') {
+                    maxPossiblePoints += 1.0;
                     if (ans && typeof ans === 'object') {
                         let correctCount = 0;
                         q.answers.forEach((aObj, aIdx) => { if(ans[aIdx] === aObj.correct) correctCount++; });
+                        
+                        // Lũy tiến: 0.1 - 0.25 - 0.5 - 1.0
                         if(correctCount === 1) totalPoints += 0.1;
                         else if(correctCount === 2) totalPoints += 0.25;
                         else if(correctCount === 3) totalPoints += 0.5;
@@ -788,13 +861,16 @@
                         q.studentCorrectCount = correctCount;
                     }
                 } else if (q.type === 'tra_loi_ngan') {
-                    if (ans && String(ans).toLowerCase().trim() === String(q.correctAnswer||'').toLowerCase().trim()) { totalPoints += 1; q.studentCorrect = true; isCorrect = true; }
+                    maxPossiblePoints += 0.25;
+                    if (ans && String(ans).toLowerCase().trim() === String(q.correctAnswer||'').toLowerCase().trim()) { totalPoints += 0.25; q.studentCorrect = true; isCorrect = true; }
                 }
 
                 if (!isCorrect) chapterStats[q.chapterId].wrong++;
             });
 
-            let finalScore10 = (totalPoints / maxPoints) * 10;
+            // Quy đổi bài làm bất kỳ về thang điểm 10 để vẽ biểu đồ
+            let finalScore10 = maxPossiblePoints > 0 ? (totalPoints / maxPossiblePoints) * 10 : 0;
+            
             let minTaken = Math.floor(window.timeTakenSec / 60); let secTaken = window.timeTakenSec % 60;
             document.getElementById('res-time').textContent = `${minTaken.toString().padStart(2,'0')}:${secTaken.toString().padStart(2,'0')}`;
             document.getElementById('res-name-display').textContent = window.userName;
@@ -815,10 +891,9 @@
             
             document.getElementById('res-icon').textContent = evalIcon; document.getElementById('res-title').textContent = evalTitle; document.getElementById('res-eval').textContent = evalMsg;
 
-            // Xử lý Lỗ hổng kiến thức
             let weakHtml = ''; let weakList = [];
             for (let chapId in chapterStats) { if (chapterStats[chapId].wrong > 0) weakList.push({ id: chapId, w: chapterStats[chapId].wrong, t: chapterStats[chapId].total }); }
-            weakList.sort((a, b) => (b.w/b.t) - (a.w/a.t)); // Ưu tiên chương sai tỉ lệ cao nhất
+            weakList.sort((a, b) => (b.w/b.t) - (a.w/a.t)); 
 
             if (weakList.length > 0) {
                 weakHtml += `<div class="bg-rose-50 p-5 rounded-2xl border border-rose-200 max-w-xl mx-auto mb-8 shadow-inner text-left">
@@ -833,7 +908,6 @@
             }
             document.getElementById('res-weak-chapters').innerHTML = weakHtml;
 
-            // LƯU LỊCH SỬ OFFLINE THEO TÊN
             let historyKey = 'chem_student_history_' + window.userName.replace(/\s+/g, '_');
             let history = JSON.parse(localStorage.getItem(historyKey) || '[]');
             history.push({ date: new Date().toLocaleString('vi-VN'), score: parseFloat(finalScore10.toFixed(2)) });
@@ -896,7 +970,8 @@
                 let html = `<div class="p-6 md:p-8 rounded-2xl border-2 shadow-sm ${bgBorder} print-break-avoid mb-6">`;
                 html += `<div class="font-black text-lg mb-4 flex items-center justify-between"><span class="bg-white px-4 py-1.5 rounded-lg border border-slate-200 shadow-sm text-slate-700">Câu ${idx+1}</span> ${iconTop}</div>`;
                 html += `<div class="font-bold text-slate-800 text-justify mb-3 text-[14pt] leading-relaxed">${q.content || ''}</div>`;
-                let images = q.standaloneImages || (q.standaloneImage ? [q.standaloneImage] : []); html += buildImageHtml(images, q.standaloneLayout);
+                let images = q.standaloneImages || (q.standaloneImage ? [q.standaloneImage] : []); 
+                html += buildImageHtml(images, q.standaloneLayout, q.standaloneScale);
                 if(q.subContent) html += `<div class="font-bold text-slate-800 text-justify mb-5 text-[14pt] leading-relaxed">${q.subContent}</div>`;
 
                 if(q.type === 'trac_nghiem') {
