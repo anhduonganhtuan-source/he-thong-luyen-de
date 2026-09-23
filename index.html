@@ -160,12 +160,30 @@
 
                     <div class="bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 shadow-inner">
                         <label class="block text-sm font-black mb-3 text-indigo-800 uppercase tracking-wide">2. Phạm vi khối lớp</label>
-                        <select id="cfg-grade" onchange="renderChapters()" class="w-full border-2 border-indigo-200 rounded-xl px-4 py-3.5 font-bold bg-white text-slate-700 focus:ring-4 focus:ring-indigo-500/20 outline-none transition cursor-pointer text-base">
-                            <option value="ALL">🌟 Tất cả khối lớp (Đề tổng hợp)</option>
-                            <option value="12">📚 Chỉ kiến thức Lớp 12</option>
-                            <option value="11">📚 Chỉ kiến thức Lớp 11</option>
-                            <option value="10">📚 Chỉ kiến thức Lớp 10</option>
-                        </select>
+                        <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                            <label class="checkbox-card relative flex items-center justify-center p-2 rounded-xl border-2 border-slate-200 hover:border-indigo-300 bg-white cursor-pointer transition shadow-sm group">
+                                <input type="checkbox" value="10" checked onchange="renderChapters()" class="chk-grade absolute opacity-0 w-0 h-0">
+                                <div class="w-5 h-5 rounded border-2 border-slate-300 mr-1.5 flex items-center justify-center transition-colors group-hover:border-indigo-400 bg-white shadow-inner">
+                                    <i class="fas fa-check text-[10px] text-white opacity-0 transition-opacity"></i>
+                                </div>
+                                <span class="font-bold text-slate-700 text-sm">Lớp 10</span>
+                            </label>
+                            <label class="checkbox-card relative flex items-center justify-center p-2 rounded-xl border-2 border-slate-200 hover:border-indigo-300 bg-white cursor-pointer transition shadow-sm group">
+                                <input type="checkbox" value="11" checked onchange="renderChapters()" class="chk-grade absolute opacity-0 w-0 h-0">
+                                <div class="w-5 h-5 rounded border-2 border-slate-300 mr-1.5 flex items-center justify-center transition-colors group-hover:border-indigo-400 bg-white shadow-inner">
+                                    <i class="fas fa-check text-[10px] text-white opacity-0 transition-opacity"></i>
+                                </div>
+                                <span class="font-bold text-slate-700 text-sm">Lớp 11</span>
+                            </label>
+                            <label class="checkbox-card relative flex items-center justify-center p-2 rounded-xl border-2 border-slate-200 hover:border-indigo-300 bg-white cursor-pointer transition shadow-sm group">
+                                <input type="checkbox" value="12" checked onchange="renderChapters()" class="chk-grade absolute opacity-0 w-0 h-0">
+                                <div class="w-5 h-5 rounded border-2 border-slate-300 mr-1.5 flex items-center justify-center transition-colors group-hover:border-indigo-400 bg-white shadow-inner">
+                                    <i class="fas fa-check text-[10px] text-white opacity-0 transition-opacity"></i>
+                                </div>
+                                <span class="font-bold text-slate-700 text-sm">Lớp 12</span>
+                            </label>
+                        </div>
+                        <p class="text-xs font-bold text-slate-400 mt-3 text-center italic">* Có thể tick chọn nhiều lớp cùng lúc</p>
                     </div>
 
                     <!-- Tùy chỉnh thêm (Cho phép THPT & Tự do đều hiển thị chọn mức độ, nhưng THPT mặc định tỷ lệ) -->
@@ -411,7 +429,8 @@
                 document.getElementById('user-info').classList.remove('hidden');
                 
                 hideAllViews(); document.getElementById('view-setup').classList.remove('hidden');
-                document.getElementById('cfg-mode').value = 'THPT'; document.getElementById('cfg-grade').value = 'ALL';
+                document.getElementById('cfg-mode').value = 'THPT'; 
+                document.querySelectorAll('.chk-grade').forEach(cb => cb.checked = true);
                 updateSetupUI();
             } catch (err) {
                 showAlert("LỖI: Không tìm thấy file data.json! Giáo viên cần xuất file đề từ máy và tải lên GitHub (cùng thư mục với file html này) thì học sinh mới có đề để thi.");
@@ -432,9 +451,9 @@
         }
 
         window.renderChapters = function() {
-            let gradeFilter = document.getElementById('cfg-grade').value;
+            let checkedGrades = Array.from(document.querySelectorAll('.chk-grade:checked')).map(cb => cb.value);
             let chaptersFound = new Set();
-            window.systemQuestions.forEach(q => { if (gradeFilter === 'ALL' || q.grade === gradeFilter) chaptersFound.add(q.chapterId); });
+            window.systemQuestions.forEach(q => { if (checkedGrades.includes(q.grade)) chaptersFound.add(q.chapterId); });
             
             let container = document.getElementById('cfg-chapter-container'); container.innerHTML = '';
             if(chaptersFound.size === 0) {
@@ -577,14 +596,14 @@
                     badge.className = "flex items-center space-x-2 bg-indigo-100 text-indigo-700 px-5 py-2.5 rounded-xl font-black text-xl shadow-inner min-w-[140px] justify-center border border-indigo-200";
                     icon.className = "fas fa-stopwatch";
                 }
-            }
-        }
-
-        function buildImageHtml(images, layout) {
+        function buildImageHtml(images, layout, scale) {
             if(!images || images.length === 0) return '';
+            let scaleVal = scale || 100;
             let layoutClass = "w-full gap-4 justify-center items-center my-4 ";
             if(layout === 'row') layoutClass += "flex flex-row flex-wrap"; else if(layout === 'col') layoutClass += "flex flex-col"; else if(layout === 'grid') layoutClass += "grid grid-cols-2";
-            let html = `<div class="${layoutClass}">`; images.forEach(src => { html += `<img src="${src}" class="standalone-img">`; }); html += `</div>`;
+            let html = `<div class="${layoutClass}">`; 
+            images.forEach(src => { html += `<img src="${src}" class="standalone-img" style="width: ${scaleVal}%; max-width: ${scaleVal}%;">`; }); 
+            html += `</div>`;
             return html;
         }
 
@@ -687,7 +706,7 @@
                 html += `<div class="font-bold text-slate-800 text-justify mb-3 text-[14pt] leading-relaxed">${q.content || ''}</div>`;
                 
                 let images = q.standaloneImages || (q.standaloneImage ? [q.standaloneImage] : []);
-                html += buildImageHtml(images, q.standaloneLayout);
+                html += buildImageHtml(images, q.standaloneLayout, q.standaloneScale);
                 if(q.subContent) html += `<div class="font-bold text-slate-800 text-justify mb-5 text-[14pt] leading-relaxed">${q.subContent}</div>`;
 
                 if(q.type === 'trac_nghiem') {
@@ -766,7 +785,7 @@
         window.submitQuiz = function(isForced = false) {
             if(window.timerInterval) clearInterval(window.timerInterval);
 
-            let totalPoints = 0; let maxPoints = window.currentQuiz.length; let chapterStats = {};
+            let totalPoints = 0; let maxPossiblePoints = 0; let chapterStats = {};
 
             window.currentQuiz.forEach((q, idx) => {
                 let qId = `q_${idx}`; let ans = window.quizAnswers[qId];
@@ -776,8 +795,10 @@
                 chapterStats[q.chapterId].total++; let isCorrect = false;
 
                 if (q.type === 'trac_nghiem') {
-                    if (ans !== undefined && parseInt(ans) === q.correctAnswer) { totalPoints += 1; q.studentCorrect = true; isCorrect = true; }
+                    maxPossiblePoints += 0.25;
+                    if (ans !== undefined && parseInt(ans) === q.correctAnswer) { totalPoints += 0.25; q.studentCorrect = true; isCorrect = true; }
                 } else if (q.type === 'dung_sai') {
+                    maxPossiblePoints += 1.0;
                     if (ans && typeof ans === 'object') {
                         let correctCount = 0;
                         q.answers.forEach((aObj, aIdx) => { if(ans[aIdx] === aObj.correct) correctCount++; });
@@ -788,13 +809,14 @@
                         q.studentCorrectCount = correctCount;
                     }
                 } else if (q.type === 'tra_loi_ngan') {
-                    if (ans && String(ans).toLowerCase().trim() === String(q.correctAnswer||'').toLowerCase().trim()) { totalPoints += 1; q.studentCorrect = true; isCorrect = true; }
+                    maxPossiblePoints += 0.25;
+                    if (ans && String(ans).toLowerCase().trim() === String(q.correctAnswer||'').toLowerCase().trim()) { totalPoints += 0.25; q.studentCorrect = true; isCorrect = true; }
                 }
 
                 if (!isCorrect) chapterStats[q.chapterId].wrong++;
             });
 
-            let finalScore10 = (totalPoints / maxPoints) * 10;
+            let finalScore10 = maxPossiblePoints > 0 ? (totalPoints / maxPossiblePoints) * 10 : 0;
             let minTaken = Math.floor(window.timeTakenSec / 60); let secTaken = window.timeTakenSec % 60;
             document.getElementById('res-time').textContent = `${minTaken.toString().padStart(2,'0')}:${secTaken.toString().padStart(2,'0')}`;
             document.getElementById('res-name-display').textContent = window.userName;
@@ -896,7 +918,8 @@
                 let html = `<div class="p-6 md:p-8 rounded-2xl border-2 shadow-sm ${bgBorder} print-break-avoid mb-6">`;
                 html += `<div class="font-black text-lg mb-4 flex items-center justify-between"><span class="bg-white px-4 py-1.5 rounded-lg border border-slate-200 shadow-sm text-slate-700">Câu ${idx+1}</span> ${iconTop}</div>`;
                 html += `<div class="font-bold text-slate-800 text-justify mb-3 text-[14pt] leading-relaxed">${q.content || ''}</div>`;
-                let images = q.standaloneImages || (q.standaloneImage ? [q.standaloneImage] : []); html += buildImageHtml(images, q.standaloneLayout);
+                let images = q.standaloneImages || (q.standaloneImage ? [q.standaloneImage] : []); 
+                html += buildImageHtml(images, q.standaloneLayout, q.standaloneScale);
                 if(q.subContent) html += `<div class="font-bold text-slate-800 text-justify mb-5 text-[14pt] leading-relaxed">${q.subContent}</div>`;
 
                 if(q.type === 'trac_nghiem') {
