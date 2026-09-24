@@ -188,11 +188,10 @@
                     <!-- TÍNH NĂNG MỚI: CHỌN CHƯƠNG TRỌNG TÂM CÂU KHÓ -->
                     <div class="bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 shadow-inner mt-6">
                         <label class="block text-sm font-black mb-2 text-indigo-800 uppercase tracking-wide">3. Vùng kiến thức khó (VD-VDC)</label>
-                        <p class="text-xs font-bold text-slate-500 mb-3">Hệ thống sẽ ưu tiên bốc các câu hỏi khó (nếu có đủ) ở chương bạn chọn để tăng cường rèn luyện.</p>
-                        <select id="cfg-focus-chapter" class="w-full border-2 border-indigo-200 rounded-xl px-3 py-2.5 font-bold bg-white text-slate-700 focus:ring-4 focus:ring-indigo-500/20 outline-none transition cursor-pointer text-sm">
-                            <option value="ALL">🌟 Rải đều tất cả các chương (Mặc định)</option>
-                            <!-- JS Sẽ thêm Option vào đây -->
-                        </select>
+                        <p class="text-xs font-bold text-slate-500 mb-3">Hệ thống ưu tiên bốc câu khó ở các chương bạn tick chọn. (Nếu không tick, hệ thống sẽ rải đều).</p>
+                        <div id="cfg-focus-chapters-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scroll pr-2">
+                            <!-- JS Sẽ render các checkbox chương vào đây -->
+                        </div>
                     </div>
 
                     <div id="custom-settings-area" class="bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 shadow-inner space-y-4">
@@ -510,10 +509,10 @@
             
             let container = document.getElementById('cfg-chapter-container'); container.innerHTML = '';
             
-            // Thêm xử lý cho Ô Chọn Chương Trọng Tâm
-            let focusSelect = document.getElementById('cfg-focus-chapter');
-            let currentFocus = focusSelect.value;
-            focusSelect.innerHTML = '<option value="ALL">🌟 Rải đều tất cả các chương (Mặc định)</option>';
+            // Thêm xử lý cho Khu Vực Chọn Nhiều Chương Trọng Tâm
+            let focusContainer = document.getElementById('cfg-focus-chapters-container');
+            let oldFocus = Array.from(document.querySelectorAll('.chk-focus:checked')).map(cb => cb.value);
+            focusContainer.innerHTML = '';
 
             if(chaptersFound.size === 0) {
                 container.innerHTML = '<p class="text-sm font-bold text-rose-500 italic p-4 text-center bg-rose-50 rounded-lg">Không có dữ liệu trong ngân hàng hoặc bạn chưa tick chọn khối lớp nào.</p>';
@@ -525,7 +524,7 @@
             sortedChaps.forEach(chapId => {
                 let niceName = chapterDictionary[chapId] || `Chương mã: ${chapId}`;
                 
-                // Render Checkbox chương
+                // Render Checkbox chương (Cột phải)
                 container.innerHTML += `
                     <label class="checkbox-card relative flex items-center p-3 rounded-xl border-2 border-slate-200 hover:border-indigo-300 bg-white cursor-pointer transition shadow-sm group">
                         <input type="checkbox" value="${chapId}" checked class="chk-chap absolute opacity-0 w-0 h-0">
@@ -535,12 +534,15 @@
                         <span class="font-bold text-slate-700 text-sm flex-grow leading-tight">${niceName}</span>
                     </label>`;
                 
-                // Render Select trọng tâm
-                focusSelect.innerHTML += `<option value="${chapId}">🎯 ${niceName}</option>`;
+                // Render Checkbox Trọng tâm câu khó (Cột trái)
+                let isChecked = oldFocus.includes(chapId) ? 'checked' : '';
+                focusContainer.innerHTML += `
+                    <label class="flex items-start space-x-2 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-indigo-50 transition bg-white shadow-sm">
+                        <input type="checkbox" value="${chapId}" class="chk-focus mt-0.5 w-4 h-4 text-indigo-600 rounded" ${isChecked}>
+                        <span class="text-xs font-bold text-slate-700 leading-tight">${niceName}</span>
+                    </label>
+                `;
             });
-            
-            // Phục hồi lựa chọn focus cũ nếu vẫn còn trong danh sách
-            if(sortedChaps.includes(currentFocus)) focusSelect.value = currentFocus;
         }
 
         window.toggleAllChapters = function(chkbox) { document.querySelectorAll('.chk-chap').forEach(b => b.checked = chkbox.checked); }
@@ -568,8 +570,8 @@
             }
         }
 
-        // Đã cập nhật để ưu tiên lấy câu VD, VDC ở chương Trọng tâm
-        function pickQuestionsByDistribution(basePool, type, targetCount, focusChapterId) {
+        // Đã cập nhật để hỗ trợ mảng chứa nhiều Chương Trọng tâm
+        function pickQuestionsByDistribution(basePool, type, targetCount, focusChapterIds) {
             let pool = basePool.filter(q => q.type === type);
             let dist = getTHPTDistribution(type);
             let selected = [];
@@ -582,12 +584,12 @@
                 let availLvlPool = shuffleArray(pool.filter(q => q.level === lvl));
                 let pickedLvl = [];
 
-                // Nếu là câu VD, VDC VÀ người dùng có chọn Chương Trọng Tâm
-                if ((lvl === 'VanDung' || lvl === 'VanDungCao') && focusChapterId && focusChapterId !== 'ALL') {
-                    let focusPool = availLvlPool.filter(q => q.chapterId === focusChapterId);
-                    let nonFocusPool = availLvlPool.filter(q => q.chapterId !== focusChapterId);
+                // Nếu là câu VD, VDC VÀ người dùng có tick chọn Chương Trọng Tâm (khác ALL)
+                if ((lvl === 'VanDung' || lvl === 'VanDungCao') && focusChapterIds && !focusChapterIds.includes('ALL')) {
+                    let focusPool = availLvlPool.filter(q => focusChapterIds.includes(q.chapterId));
+                    let nonFocusPool = availLvlPool.filter(q => !focusChapterIds.includes(q.chapterId));
 
-                    // Ưu tiên vét cạn câu hỏi trong Chương Trọng Tâm trước
+                    // Ưu tiên vét cạn câu hỏi trong các Chương Trọng Tâm đã tick trước
                     pickedLvl.push(...focusPool.slice(0, requiredCount));
                     
                     // Nếu vẫn chưa đủ chỉ tiêu, bốc thêm các chương khác bù vào
@@ -614,19 +616,28 @@
 
         window.generateQuiz = function() {
             let mode = document.getElementById('cfg-mode').value;
-            let focusChapterId = document.getElementById('cfg-focus-chapter').value;
+            
+            // Xử lý logic nhiều chương trọng tâm
+            let checkedFocusBoxes = document.querySelectorAll('.chk-focus:checked');
+            let focusChapterIds = Array.from(checkedFocusBoxes).map(b => b.value);
+            let totalFocusBoxes = document.querySelectorAll('.chk-focus').length;
+            
+            // Nếu tick tất cả HOẶC không tick gì cả -> Tự động hiểu là "Rải đều"
+            if (focusChapterIds.length === 0 || focusChapterIds.length === totalFocusBoxes) {
+                focusChapterIds = ['ALL'];
+            }
             
             let checkedBoxes = document.querySelectorAll('.chk-chap:checked');
-            if (checkedBoxes.length === 0) { showAlert("Vui lòng tick chọn ít nhất 1 chương!"); return; }
+            if (checkedBoxes.length === 0) { showAlert("Vui lòng tick chọn ít nhất 1 chương ở cột bên phải!"); return; }
             let selectedChaps = Array.from(checkedBoxes).map(b => b.value);
             
             let basePool = window.systemQuestions.filter(q => selectedChaps.includes(q.chapterId));
             let finalPool = [];
 
             if (mode === 'THPT') {
-                let pTN = pickQuestionsByDistribution(basePool, 'trac_nghiem', 18, focusChapterId);
-                let pDS = pickQuestionsByDistribution(basePool, 'dung_sai', 4, focusChapterId);
-                let pTLN = pickQuestionsByDistribution(basePool, 'tra_loi_ngan', 6, focusChapterId);
+                let pTN = pickQuestionsByDistribution(basePool, 'trac_nghiem', 18, focusChapterIds);
+                let pDS = pickQuestionsByDistribution(basePool, 'dung_sai', 4, focusChapterIds);
+                let pTLN = pickQuestionsByDistribution(basePool, 'tra_loi_ngan', 6, focusChapterIds);
                 
                 if (!pTN || !pDS || !pTLN) {
                     let msg = `Ngân hàng trong các chương bạn chọn không có đủ số lượng để tạo cấu trúc đề THPT 2025 (Cần 18 TN, 4 ĐS, 6 TLN).\n\nHãy tick thêm các chương khác hoặc chọn chế độ Luyện Tự Do.`;
