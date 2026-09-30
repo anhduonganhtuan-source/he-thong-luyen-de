@@ -813,11 +813,11 @@
                                 <span class="bg-emerald-50 text-emerald-600 font-bold px-2.5 py-1 rounded-md text-xs border border-emerald-200">${q.level}</span>
                             </div>
                          </div>`;
-                html += `<div class="font-bold text-slate-800 text-justify mb-3 text-[14pt] leading-relaxed">${q.content || ''}</div>`;
+                html += `<div class="font-normal text-slate-800 text-justify mb-3 text-[14pt] leading-relaxed">${q.content || ''}</div>`;
                 
                 let images = q.standaloneImages || (q.standaloneImage ? [q.standaloneImage] : []);
                 html += buildImageHtml(images, q.standaloneLayout);
-                if(q.subContent) html += `<div class="font-bold text-slate-800 text-justify mb-5 text-[14pt] leading-relaxed">${q.subContent}</div>`;
+                if(q.subContent) html += `<div class="font-normal text-slate-800 text-justify mb-5 text-[14pt] leading-relaxed">${q.subContent}</div>`;
 
                 if(q.type === 'trac_nghiem') {
                     html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5">`;
@@ -1030,9 +1030,9 @@
 
                 let html = `<div class="p-6 md:p-8 rounded-2xl border-2 shadow-sm ${bgBorder} print-break-avoid mb-6">`;
                 html += `<div class="font-black text-lg mb-4 flex items-center justify-between"><span class="bg-white px-4 py-1.5 rounded-lg border border-slate-200 shadow-sm text-slate-700">Câu ${idx+1}</span> ${iconTop}</div>`;
-                html += `<div class="font-bold text-slate-800 text-justify mb-3 text-[14pt] leading-relaxed">${q.content || ''}</div>`;
+                html += `<div class="font-normal text-slate-800 text-justify mb-3 text-[14pt] leading-relaxed">${q.content || ''}</div>`;
                 let images = q.standaloneImages || (q.standaloneImage ? [q.standaloneImage] : []); html += buildImageHtml(images, q.standaloneLayout);
-                if(q.subContent) html += `<div class="font-bold text-slate-800 text-justify mb-5 text-[14pt] leading-relaxed">${q.subContent}</div>`;
+                if(q.subContent) html += `<div class="font-normal text-slate-800 text-justify mb-5 text-[14pt] leading-relaxed">${q.subContent}</div>`;
 
                 if(q.type === 'trac_nghiem') {
                     html += `<div class="space-y-3 mt-5">`;
